@@ -48,6 +48,7 @@
     - Meat
     - Organ
     - Liver
+    - Trash #moonstation
   - type: Item
     size: Small
     heldPrefix: liver
