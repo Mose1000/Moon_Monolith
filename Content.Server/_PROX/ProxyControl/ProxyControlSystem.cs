@@ -171,37 +171,34 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
 
         EjectBody(uid, component);
     }
-
     private void AddAlternativeVerbs(EntityUid uid, ProxyControlPodComponent component, GetVerbsEvent<AlternativeVerb> args)
     {
-        if (!args.CanAccess || !args.CanInteract)
+        if (!args.CanInteract || !args.CanAccess)
             return;
 
-        // Eject verb
+        // Enter/Eject Body verb
         if (IsOccupied(component))
         {
-            AlternativeVerb verb = new()
+            if (args.User == component.BodyContainer.ContainedEntity || _blocker.CanInteract(args.User, uid))
             {
-                Act = () => EjectBody(uid, component),
-                Category = VerbCategory.Eject,
-                Text = Loc.GetString("medical-scanner-verb-noun-occupant"),
-                Priority = 1
-            };
-            args.Verbs.Add(verb);
+                args.Verbs.Add(new AlternativeVerb
+                {
+                    Text = Loc.GetString("proxy-control-pod-verb-eject"),
+                    Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/eject.svg.192dpi.png")),
+                    Priority = 2, // Prioritize over generic ID card eject
+                    Act = () => EjectBody(uid, component)
+                });
+            }
         }
-
-        // Self-insert verb
-        if (!IsOccupied(component) &&
-            CanPodInsert(uid, args.User, component) &&
-            _blocker.CanMove(args.User))
+        else if (CanPodInsert(uid, args.User, component) && _blocker.CanMove(args.User))
         {
-            AlternativeVerb verb = new()
+            args.Verbs.Add(new AlternativeVerb
             {
-                Act = () => InsertBody(uid, args.User, component),
-                Text = Loc.GetString("medical-scanner-verb-enter"),
-                Icon = new SpriteSpecifier.Texture(new ("/Textures/Interface/VerbIcons/open.svg.192dpi.png"))
-            };
-            args.Verbs.Add(verb);
+                Text = Loc.GetString("proxy-control-pod-verb-enter"),
+                Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/in.svg.192dpi.png")),
+                Priority = 2, // Prioritize over generic ID card eject
+                Act = () => InsertBody(args.User, uid, component)
+            });
         }
     }
 
