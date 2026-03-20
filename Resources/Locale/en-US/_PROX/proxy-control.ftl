@@ -1,5 +1,7 @@
 ## Proxy Control
 proxy-control-pod-id-slot = ID Card
+proxy-control-pod-verb-enter = Enter Pod
+proxy-control-pod-verb-eject = Eject Body
 proxy-control-link-started = Neural link establishing...
 proxy-control-link-established = Neural link established. You are now controlling {$name}.
 proxy-control-link-severed = Neural link severed. Returning to body.

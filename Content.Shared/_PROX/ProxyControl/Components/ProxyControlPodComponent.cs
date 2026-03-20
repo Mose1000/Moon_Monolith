@@ -78,6 +78,12 @@ public sealed partial class ProxyControlPodComponent : Component
     public ContainerSlot BodyContainer = default!;
 
     /// <summary>
+    /// The container slot for the ID card.
+    /// </summary>
+    [ViewVariables]
+    public ContainerSlot IdCardContainer = default!;
+
+    /// <summary>
     /// The action prototype to grant the operator for disconnecting.
     /// </summary>
     [DataField]

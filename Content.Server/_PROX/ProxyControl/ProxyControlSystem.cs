@@ -69,7 +69,6 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
         base.Initialize();
 
         // Pod events
-        SubscribeLocalEvent<ProxyControlPodComponent, ComponentInit>(OnPodInit);
         SubscribeLocalEvent<ProxyControlPodComponent, ComponentShutdown>(OnPodShutdown);
         SubscribeLocalEvent<ProxyControlPodComponent, EntInsertedIntoContainerMessage>(OnPodEntInserted);
         SubscribeLocalEvent<ProxyControlPodComponent, EntRemovedFromContainerMessage>(OnPodEntRemoved);
@@ -135,13 +134,6 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
     }
 
     #region Pod Lifecycle
-
-    private void OnPodInit(EntityUid uid, ProxyControlPodComponent component, ComponentInit args)
-    {
-        // ID card slot is initialized via ItemSlotsComponent in the prototype (via ItemSlotsSystem).
-        // We only need to ensure the body container here.
-        component.BodyContainer = _container.EnsureContainer<ContainerSlot>(uid, component.BodyContainerId);
-    }
 
     private void OnPodShutdown(EntityUid uid, ProxyControlPodComponent component, ComponentShutdown args)
     {
@@ -266,11 +258,11 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
     }
 
     /// <summary>
-    /// Severs the link when the occupant is removed from the pod.
+    /// Severs the link when the occupant or ID card is removed from the pod.
     /// </summary>
     private void OnPodEntRemoved(EntityUid uid, ProxyControlPodComponent component, EntRemovedFromContainerMessage args)
     {
-        if (args.Container.ID == component.BodyContainerId)
+        if (args.Container.ID == component.BodyContainerId || args.Container.ID == component.IdCardSlotId)
         {
             if (component.IsLinked)
                 SeverLink((uid, component), "proxy-control-link-severed");
@@ -464,20 +456,24 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
 
         var chassis = args.Container.Owner;
 
-        if (!TryComp<BorgChassisComponent>(chassis, out var borgComp))
-            return;
-
-        if (args.Container.ID != borgComp.BrainContainerId)
-            return;
-
-        // If there's an active link, sever it first
-        if (TryComp<ProxyControllableComponent>(chassis, out var controllable) && controllable.ControllingPod != null)
+        // If the chassis has a controllable component, check if we need to sever the link
+        if (TryComp<ProxyControllableComponent>(chassis, out var controllable))
         {
-            if (TryComp<ProxyControlPodComponent>(controllable.ControllingPod, out var podComp))
-                SeverLink((controllable.ControllingPod.Value, podComp), "proxy-control-link-severed");
-        }
+            if (controllable.ControllingPod != null)
+            {
+                if (TryComp<ProxyControlPodComponent>(controllable.ControllingPod.Value, out var podComp))
+                {
+                    Log.Debug($"ProxyControlSystem: Severing link for pod {controllable.ControllingPod.Value} due to module {uid} removal from {chassis}.");
+                    SeverLink((controllable.ControllingPod.Value, podComp), "proxy-control-link-severed");
+                }
+            }
 
-        RemCompDeferred<ProxyControllableComponent>(chassis);
+            // Remove the controllable state from the chassis if the module was in the brain slot
+            if (TryComp<BorgChassisComponent>(chassis, out var borgComp) && args.Container.ID == borgComp.BrainContainerId)
+            {
+                RemCompDeferred<ProxyControllableComponent>(chassis);
+            }
+        }
     }
 
     #endregion
@@ -705,7 +701,7 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
             _metadata.SetEntityName(proxy, idComp.FullName);
         }
 
-        // Copy access
+        // Copy and strict-replace access
         if (TryComp<AccessComponent>(idCard, out var idAccess))
         {
             _access.TrySetTags(proxy, idAccess.Tags);
