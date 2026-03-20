@@ -1,0 +1,74 @@
+# Neural Link Pod — allows a player to remotely control a proxy cyborg
+- type: entity
+  id: ProxyControlPod
+  name: neural link pod
+  description: A reclining pod with neural interface cables. Insert an ID card and enter the pod to assume control of a linked proxy cyborg.
+  parent: BaseStructureDynamic
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: ProxyControlPod
+    linkEstablishTime: 3
+    maxLinkRange: 0
+    feedbackDamageMin: 0
+    feedbackDamageMax: 25
+  - type: ContainerContainer
+    containers:
+      pod_id_slot: !type:ContainerSlot {}
+      pod_body_container: !type:ContainerSlot
+  - type: ItemSlots
+    slots:
+      pod_id_slot:
+        name: proxy-control-pod-id-slot
+        insertSound:
+          path: /Audio/Machines/id_insert.ogg
+        ejectSound:
+          path: /Audio/Machines/id_insert.ogg
+        whitelist:
+          components:
+          - IdCard
+  - type: ApcPowerReceiver
+    powerLoad: 200
+  - type: Battery
+    maxCharge: 1000
+    startingCharge: 1000
+  - type: BatterySelfRecharger
+    autoRecharge: true
+    autoRechargeRate: 50
+  - type: ApcPowerReceiverBattery
+    idleLoad: 5
+    batteryRechargeRate: 50
+  - type: ExaminableBattery
+  - type: UserInterface
+    interfaces:
+      enum.ProxyControlPodUiKey.Key:
+        type: ProxyControlPodBoundUserInterface
+  - type: Sprite
+    sprite: Structures/Machines/cloning.rsi
+    layers:
+    - state: pod_0
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.5,0.25,0.5"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Transform
+    anchored: true
+  - type: Anchorable
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+  - type: InteractionOutline

@@ -1,0 +1,17 @@
+# Proxy Control Unit — link to pod, install in borg brain slot
+- type: entity
+  id: ProxyControlUnit
+  name: proxy control unit
+  description: A neural interface module. Use on a neural link pod to link it, then install in a cyborg chassis brain slot.
+  parent: BaseItem
+  components:
+  - type: ProxyControlUnit
+  - type: BorgBrain
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: std_mod
+  - type: Item
+    size: Small
+  - type: Tag
+    tags:
+    - CannotSuicide

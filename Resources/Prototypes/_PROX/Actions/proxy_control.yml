@@ -1,0 +1,12 @@
+# Disconnect action for proxy control
+- type: entity
+  id: ActionProxyDisconnect
+  name: proxy-control-disconnect
+  description: Sever the neural link and return to your body.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: InstantAction
+    icon:
+      sprite: Interface/Actions/actions_ai.rsi
+      state: emergency_off
+    event: !type:ProxyDisconnectActionEvent

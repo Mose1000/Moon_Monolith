@@ -1,0 +1,10 @@
+# Proxy Cyborg Chassis — remotely controlled via Neural Link Pod
+- type: entity
+  id: ProxyCyborgChassis
+  name: proxy cyborg
+  description: A cyborg chassis designed for remote operation via a neural link pod. Requires a proxy control unit installed as its brain.
+  parent: BorgChassisSelectable
+  suffix: Proxy
+  components:
+  - type: Access
+    tags: []
