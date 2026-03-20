@@ -197,7 +197,7 @@ public sealed class ProxyControlSystem : SharedProxyControlSystem
                 Text = Loc.GetString("proxy-control-pod-verb-enter"),
                 Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/in.svg.192dpi.png")),
                 Priority = 2, // Prioritize over generic ID card eject
-                Act = () => InsertBody(args.User, uid, component)
+                Act = () => InsertBody(uid, args.User, component)
             });
         }
     }
