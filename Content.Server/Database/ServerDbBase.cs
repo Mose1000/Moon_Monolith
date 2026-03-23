@@ -201,6 +201,11 @@ namespace Content.Server.Database
             if (Enum.TryParse<Gender>(profile.Gender, true, out var genderVal))
                 gender = genderVal;
 
+            var voice = profile.Voice;
+            if (voice == String.Empty)
+                voice = SharedHumanoidAppearanceSystem.DefaultSexVoice[sex];
+
+
             var balance = profile.BankBalance;
 
             // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
@@ -255,6 +260,7 @@ namespace Content.Server.Database
                 profile.CharacterName,
                 profile.FlavorText,
                 profile.Species,
+                profile.Voice,
                 profile.Age,
                 sex,
                 gender,
@@ -294,6 +300,7 @@ namespace Content.Server.Database
             profile.CharacterName = humanoid.Name;
             profile.FlavorText = humanoid.FlavorText;
             profile.Species = humanoid.Species;
+            profile.Voice = humanoid.Voice;
             profile.Age = humanoid.Age;
             profile.Sex = humanoid.Sex.ToString();
             profile.Gender = humanoid.Gender.ToString();
@@ -641,7 +648,7 @@ namespace Content.Server.Database
             // This allows us to semi-efficiently load all entities we need in a single DB query.
             // Then we can update & insert without further round-trips to the DB.
 
-            var players = updates.Select(u => u.User.UserId).Distinct().ToArray();
+            var players = updates.Select(u => u.User.UserId).Distinct().ToList();
             var dbTimes = (await db.DbContext.PlayTime
                     .Where(p => players.Contains(p.PlayerId))
                     .ToArrayAsync())
@@ -875,8 +882,10 @@ namespace Content.Server.Database
         {
             await using var db = await GetDb();
 
+            var playerIdsList = playerIds.ToList();
+
             var players = await db.DbContext.Player
-                .Where(player => playerIds.Contains(player.UserId))
+                .Where(player => playerIdsList.Contains(player.UserId))
                 .ToListAsync();
 
             var round = new Round
@@ -907,10 +916,11 @@ namespace Content.Server.Database
         public async Task AddRoundPlayers(int id, Guid[] playerIds)
         {
             await using var db = await GetDb();
+            var playerIdsList = playerIds.ToList();
 
             // ReSharper disable once SuggestVarOrType_Elsewhere
             Dictionary<Guid, int> players = await db.DbContext.Player
-                .Where(player => playerIds.Contains(player.UserId))
+                .Where(player => playerIdsList.Contains(player.UserId))
                 .ToDictionaryAsync(player => player.UserId, player => player.Id);
 
             foreach (var player in playerIds)
